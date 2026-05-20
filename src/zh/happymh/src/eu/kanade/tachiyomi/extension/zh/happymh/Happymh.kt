@@ -251,6 +251,7 @@ class Happymh :
             .build()
         val headers = ajaxHeadersBuilder(requestId, accept = "application/json")
             .set("Referer", "$baseUrl/mangaread/$comicId/$chapterId")
+            .set("Cookie", "$HAPPYMH_GA_COOKIE_NAME=${freshHappymhGaCookieValue()}")
             .build()
         return GET(url, headers)
     }
@@ -314,5 +315,33 @@ class Happymh :
 
     companion object {
         private const val DUMMY_CHAPTER_MARK = "dummy-mark"
+        private const val HAPPYMH_GA_COOKIE_NAME = "_ga_HVJMXGJXFJ"
+        private const val HAPPYMH_GA_OFFSET = 0x1869F
+
+        private val HAPPYMH_GA_CHECKSUM_TABLE = intArrayOf(
+            0x14F,
+            0x3D8,
+            0xF8,
+            0x1E5,
+            0x20C,
+            0x22F,
+            0x1E6,
+            0xA5,
+            0x72,
+            0x67,
+        )
+
+        private fun happymhGaTimestamp(nowSeconds: Long = System.currentTimeMillis() / 1000): Long {
+            val seconds = nowSeconds.toString().take(10)
+            val checksum = HAPPYMH_GA_CHECKSUM_TABLE[seconds[seconds.length - 3] - '0'] +
+                HAPPYMH_GA_CHECKSUM_TABLE[seconds[seconds.length - 2] - '0'] +
+                HAPPYMH_GA_CHECKSUM_TABLE[seconds[seconds.length - 1] - '0']
+            return "$seconds${checksum.toString().take(3)}".toLong()
+        }
+
+        private fun freshHappymhGaCookieValue(): String {
+            val timestamp = happymhGaTimestamp()
+            return "GS2.1.s$timestamp${'$'}o9${'$'}g1${'$'}t${timestamp + HAPPYMH_GA_OFFSET}${'$'}j43${'$'}l0${'$'}h0"
+        }
     }
 }
