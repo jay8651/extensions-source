@@ -1,0 +1,42 @@
+name: Build Happymh APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/zh/happymh/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradlew"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build Happymh debug APK
+        run: ./gradlew src:zh:happymh:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: happymh-apk
+          path: src/zh/happymh/build/outputs/apk/debug/*.apk
+          retention-days: 7
